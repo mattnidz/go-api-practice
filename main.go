@@ -4,24 +4,20 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"os"
 
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/yhat/scrape"
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 )
-
-// func index_handler(w http.ResponseWriter, r *http.Request) {
-// 	fmt.Fprintf(w, "go is cool")
-// 	renderTemplate(w, "index", p)
-// }
 
 var templateDir = "./template/"
 
 var templates = template.Must(template.ParseFiles(
 	templateDir+"index.html",
 	templateDir+"header.html"))
-
-// templateDir+"footer.html"))
 
 type Page struct {
 	Title   string
@@ -84,10 +80,11 @@ func api_handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	//fmt.Println("Hello World!")
-	http.HandleFunc("/", index_handler)
-	http.HandleFunc("/about/", about_handler)
-	http.HandleFunc("/api/", api_handler)
-	http.ListenAndServe(":8000", nil)
-
+	router := mux.NewRouter()
+	router.HandleFunc("/", index_handler).Methods("GET")
+	router.HandleFunc("/about", about_handler).Methods("GET")
+	router.HandleFunc("/api/", api_handler).Methods("GET")
+	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
+	fmt.Println("INFO: App is running")
+	http.ListenAndServe(":8000", loggedRouter)
 }
